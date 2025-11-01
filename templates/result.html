@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Compression Result</title>
+    <style>
+        body { font-family: Arial; background: #0d0d0d; color: white; text-align: center; }
+        img { border-radius: 10px; margin: 10px; width: 250px; height: auto; }
+        button {
+            background-color: #28a745; color: white;
+            padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Compressed Image (K = {{ k }})</h1>
+
+    <div>
+        <img src="{{ url_for('static', filename='uploads/' + original_image) }}" alt="Original Image">
+        <img src="{{ url_for('static', filename='results/' + compressed_image) }}" alt="Compressed Image">
+    </div>
+
+    <p><b>Original Size:</b> {{ original_size|round(2) }} KB</p>
+    <p><b>Compressed Size:</b> {{ compressed_size|round(2) }} KB</p>
+    <p><b>Reduction:</b> {{ reduction|round(2) }}%</p>
+
+    <h2>Centroid Movement Graph</h2>
+    <img src="{{ url_for('static', filename='results/' + centroid_graph) }}" alt="Centroid Movement Graph" width="500">
+
+    <br><br>
+    <a href="/"><button>Compress Another Image</button></a>
+</body>
+</html>
