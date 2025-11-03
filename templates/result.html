@@ -1,32 +1,221 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Compression Result</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compression Result - K-Means</title>
     <style>
-        body { font-family: Arial; background: #0d0d0d; color: white; text-align: center; }
-        img { border-radius: 10px; margin: 10px; width: 250px; height: auto; }
-        button {
-            background-color: #28a745; color: white;
-            padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 100%);
+            color: #e4e4e7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 3rem; }
+        h1 {
+            font-size: 2.5rem; font-weight: 600; margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .k-value {
+            display: inline-block; background: rgba(0, 184, 148, 0.2);
+            padding: 0.25rem 0.75rem; border-radius: 6px;
+            font-size: 1.1rem; color: #00cec9; font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        .comparison-section, .graph-section {
+            background: rgba(30, 30, 46, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .images-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .image-card {
+            background: rgba(39, 39, 63, 0.6);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .image-card:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0, 184, 148, 0.2); }
+        .image-label {
+            font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: #00b894;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .image-label::before {
+            content: ''; width: 4px; height: 20px;
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            border-radius: 2px;
+        }
+        .image-card img {
+            width: 100%; height: auto; border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: rgba(39, 39, 63, 0.6);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            background: rgba(39, 39, 63, 0.8);
+            border-color: rgba(0, 184, 148, 0.3);
+        }
+        .stat-label {
+            font-size: 0.9rem; color: #a1a1aa;
+            margin-bottom: 0.5rem; text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-value {
+            font-size: 2rem; font-weight: 700;
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .stat-unit { font-size: 1rem; color: #71717a; margin-left: 0.25rem; }
+        .reduction-highlight {
+            background: linear-gradient(135deg, rgba(0, 184, 148, 0.2) 0%, rgba(0, 206, 201, 0.2) 100%);
+            border: 2px solid rgba(0, 184, 148, 0.4);
+        }
+        .graph-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; text-align: center; color: #e4e4e7; }
+        .graph-container {
+            display: flex; justify-content: center; align-items: center;
+            background: rgba(39, 39, 63, 0.4);
+            padding: 1.5rem;
+            border-radius: 12px;
+        }
+        .graph-container img {
+            max-width: 100%; height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .action-buttons {
+            display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;
+        }
+        .btn {
+            padding: 1rem 2rem; border: none; border-radius: 8px;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            transition: all 0.3s ease; text-decoration: none; display: inline-block;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4); }
+        .btn-secondary {
+            background: rgba(39, 39, 63, 0.8);
+            color: #e4e4e7;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .btn-secondary:hover {
+            background: rgba(39, 39, 63, 1);
+            border-color: rgba(0, 184, 148, 0.5);
+        }
+        .error-message {
+            text-align: center;
+            color: #ff7675;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 2rem;
+        }
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .images-container { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .stat-value { font-size: 1.5rem; }
         }
     </style>
 </head>
 <body>
-    <h1>Compressed Image (K = {{ k }})</h1>
+    <div class="container">
+        <header>
+            <h1>✨ Compression Complete</h1>
+            <div class="k-value">K = {{ k }} colors</div>
+        </header>
 
-    <div>
-        <img src="{{ url_for('static', filename='uploads/' + original_image) }}" alt="Original Image">
-        <img src="{{ url_for('static', filename='results/' + compressed_image) }}" alt="Compressed Image">
+        <div class="comparison-section">
+            <div class="images-container">
+                <div class="image-card">
+                    <div class="image-label">Original Image</div>
+                    <img src="{{ url_for('static', filename='uploads/' + original_image) }}" alt="Original Image">
+                </div>
+
+                {% if compressed_image %}
+                <div class="image-card">
+                    <div class="image-label">Compressed Image</div>
+                    <img src="{{ url_for('static', filename='results/' + compressed_image) }}" alt="Compressed Image">
+                </div>
+                {% else %}
+                <div class="error-message">
+                    ⚠️ {{ message }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Original Size</div>
+                    <div class="stat-value">
+                        {{ original_size|round(2) }}
+                        <span class="stat-unit">KB</span>
+                    </div>
+                </div>
+
+                {% if compressed_image %}
+                <div class="stat-card">
+                    <div class="stat-label">Compressed Size</div>
+                    <div class="stat-value">
+                        {{ compressed_size|round(2) }}
+                        <span class="stat-unit">KB</span>
+                    </div>
+                </div>
+                <div class="stat-card reduction-highlight">
+                    <div class="stat-label">Size Reduction</div>
+                    <div class="stat-value">
+                        {{ reduction|round(2) }}
+                        <span class="stat-unit">%</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if centroid_graph and compressed_image %}
+        <div class="graph-section">
+            <h2 class="graph-title">📊 Centroid Movement Analysis</h2>
+            <div class="graph-container">
+                <img src="{{ url_for('static', filename='results/' + centroid_graph) }}" alt="Centroid Movement Graph">
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="action-buttons">
+            <a href="/" class="btn btn-primary">🎨 Compress Another Image</a>
+
+            {% if compressed_image %}
+            <a href="{{ url_for('static', filename='results/' + compressed_image) }}" download class="btn btn-secondary">💾 Download Result</a>
+            {% endif %}
+        </div>
     </div>
-
-    <p><b>Original Size:</b> {{ original_size|round(2) }} KB</p>
-    <p><b>Compressed Size:</b> {{ compressed_size|round(2) }} KB</p>
-    <p><b>Reduction:</b> {{ reduction|round(2) }}%</p>
-
-    <h2>Centroid Movement Graph</h2>
-    <img src="{{ url_for('static', filename='results/' + centroid_graph) }}" alt="Centroid Movement Graph" width="500">
-
-    <br><br>
-    <a href="/"><button>Compress Another Image</button></a>
 </body>
 </html>
